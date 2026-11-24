@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusLink — Student Bidding, Cart Pools &amp; Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    .toast-enter {
+      animation: slideUp 0.2s ease-out forwards;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 shrink-0">
+        <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-sm">CL</div>
+        <div>
+          <span class="font-bold text-slate-900 tracking-tight text-base leading-none block">CampusLink</span>
+          <span class="text-[11px] text-slate-500 leading-none hidden sm:block mt-0.5">Direct Student Connector</span>
+        </div>
+      </div>
+
+      <!-- Desktop Tabs -->
+      <nav class="hidden md:flex items-center bg-slate-100 p-1 rounded-xl" aria-label="Main sections">
+        <button id="tab-btn-freelance" type="button" class="nav-tab px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+          <i data-lucide="gavel" class="w-4 h-4"></i>
+          <span>Freelance</span>
+          <span id="badge-jobs" class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">0</span>
+        </button>
+        <button id="tab-btn-pools" type="button" class="nav-tab px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          <span>Cart Pools</span>
+          <span id="badge-pools" class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold">0</span>
+        </button>
+        <button id="tab-btn-activity" type="button" class="nav-tab px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          <span>My Activity</span>
+        </button>
+        <button id="tab-btn-admin" type="button" class="hidden nav-tab px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5">
+          <i data-lucide="shield" class="w-4 h-4 text-amber-600"></i>
+          <span>Admin</span>
+        </button>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-2">
+        <button id="primary-cta-btn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span id="primary-cta-label">Post Job</span>
+        </button>
+        <button id="auth-btn" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">
+          <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
+          <span id="auth-btn-label" class="max-w-[130px] truncate">Sign In</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Tabs -->
+    <div class="md:hidden border-t border-slate-100 px-3 py-2 bg-white">
+      <div id="mob-tabs-grid" class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl">
+        <button id="mob-tab-freelance" type="button" class="mob-tab py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center">Freelance</button>
+        <button id="mob-tab-pools" type="button" class="mob-tab py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center">Cart Pools</button>
+        <button id="mob-tab-activity" type="button" class="mob-tab py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center">Activity</button>
+        <button id="mob-tab-admin" type="button" class="hidden mob-tab py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- Banner -->
+    <section class="mb-6 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="max-w-xl">
+        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mb-2.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-indigo-600"></i>
+          <span>Private bids · Direct phone connect · Zero payment fees</span>
+        </div>
+        <h1 id="hero-title" class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          Post a task, receive private bids, choose the best student.
+        </h1>
+        <p id="hero-subtitle" class="text-sm text-slate-600 mt-1">
+          Only the job poster sees bids on their job. Accept one bid to unlock direct WhatsApp and phone contact.
+        </p>
+      </div>
+      <div class="flex items-center gap-4 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 pt-3 sm:pt-0 sm:pl-5">
+        <div>
+          <div id="stat-open-jobs" class="text-xl font-bold text-indigo-600">0</div>
+          <div class="text-xs text-slate-500">Open jobs</div>
+        </div>
+        <div class="w-px h-8 bg-slate-200"></div>
+        <div>
+          <div id="stat-active-pools" class="text-xl font-bold text-emerald-600">0</div>
+          <div class="text-xs text-slate-500">Live pools</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: FREELANCE BIDS (CLIENT & FREELANCER) -->
+    <section id="view-freelance">
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 mb-5">
+        <div class="relative sm:col-span-4">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="job-search" type="text" placeholder="Search title, university, skill..." class="w-full pl-10 pr-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div class="sm:col-span-3">
+          <select id="job-university-filter" class="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-500">
+            <option value="all">All Universities</option>
+          </select>
+        </div>
+        <div class="sm:col-span-3">
+          <select id="job-category-filter" class="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-500">
+            <option value="all">All Categories</option>
+            <option value="PPT & Docs">PPT &amp; Docs</option>
+            <option value="Coding & Projects">Coding &amp; Projects</option>
+            <option value="Design & Video">Design &amp; Video</option>
+            <option value="Notes & Typing">Notes &amp; Typing</option>
+            <option value="Tutoring">Tutoring</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <select id="job-sort" class="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-500">
+            <option value="newest">Newest</option>
+            <option value="highest-budget">Highest Budget</option>
+          </select>
+        </div>
+      </div>
+      <div id="jobs-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- VIEW 2: DELIVERY POOLS (USER) -->
+    <section id="view-pools" class="hidden">
+      <div class="flex flex-col sm:flex-row gap-2.5 mb-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 flex-1">
+          <select id="pool-university-filter" class="px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-emerald-500">
+            <option value="all">All Universities</option>
+          </select>
+          <select id="pool-hostel-filter" class="px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-emerald-500">
+            <option value="all">All Hostels / Locations</option>
+            <option value="Hostel A">Hostel A</option>
+            <option value="Hostel B">Hostel B</option>
+            <option value="Hostel C">Hostel C</option>
+            <option value="Girls Hostel">Girls Hostel</option>
+            <option value="Knowledge Park PG">Knowledge Park PG</option>
+            <option value="Main Gate">Main Gate</option>
+          </select>
+          <select id="pool-platform-filter" class="px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-emerald-500">
+            <option value="all">All Apps</option>
+            <option value="Blinkit">Blinkit</option>
+            <option value="Zepto">Zepto</option>
+            <option value="Instamart">Instamart</option>
+            <option value="Zomato">Zomato</option>
+            <option value="Amazon">Amazon</option>
+          </select>
+        </div>
+        <button id="inline-start-pool-btn" type="button" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-sm shrink-0">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Start Cart Pool</span>
+        </button>
+      </div>
+      <div id="pools-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- VIEW 3: MY ACTIVITY -->
+    <section id="view-activity" class="hidden">
+      <div id="activity-content"></div>
+    </section>
+
+    <!-- VIEW 4: ADMIN DASHBOARD -->
+    <section id="view-admin" class="hidden">
+      <div id="admin-content"></div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white mt-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <div>CampusLink · Direct student connector · No payment gateway or middleman fees</div>
+      <div>All work &amp; settlements are handled directly by students on mutual understanding</div>
+    </div>
+  </footer>
+
+  <!-- MODAL: AUTH (REGISTER / SIGN IN / PROFILE) -->
+  <div id="modal-auth" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="auth-modal-title" class="text-lg font-bold text-slate-900">Sign In to CampusLink</h2>
+        <button id="close-auth-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="auth-mode-tabs" class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+        <button id="auth-tab-login" type="button" class="py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm">Sign In</button>
+        <button id="auth-tab-register" type="button" class="py-1.5 rounded-lg text-xs font-semibold text-slate-600">Create Account</button>
+      </div>
+
+      <div id="auth-error" class="hidden mb-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-medium text-rose-700"></div>
+
+      <form id="login-form" class="space-y-3">
+        <div>
+          <label for="login-phone" class="block text-xs font-semibold text-slate-700 mb-1">10-Digit Phone Number</label>
+          <input id="login-phone" type="tel" required pattern="[0-9]{10}" maxlength="10" placeholder="9876543210" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="login-password" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+          <input id="login-password" type="password" required minlength="6" placeholder="Enter your password" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition">Sign In</button>
+      </form>
+
+      <form id="register-form" class="hidden space-y-3">
+        <div>
+          <label for="reg-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+          <input id="reg-name" type="text" required placeholder="e.g. Aarav Sharma" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div id="reg-phone-wrap">
+          <label for="reg-phone" class="block text-xs font-semibold text-slate-700 mb-1">10-Digit Phone / WhatsApp Number</label>
+          <input id="reg-phone" type="tel" required pattern="[0-9]{10}" maxlength="10" placeholder="9876543210" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div id="reg-password-wrap">
+          <label for="reg-password" class="block text-xs font-semibold text-slate-700 mb-1">Create Password (min 6 characters)</label>
+          <input id="reg-password" type="password" required minlength="6" placeholder="Choose a strong password" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="reg-university" class="block text-xs font-semibold text-slate-700 mb-1">University / College Name</label>
+          <input id="reg-university" list="university-suggestions" type="text" required placeholder="e.g. Galgotias University" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+          <datalist id="university-suggestions">
+            <option value="Galgotias University"></option>
+            <option value="Sharda University"></option>
+            <option value="Bennett University"></option>
+            <option value="GL Bajaj Institute"></option>
+            <option value="NIET Greater Noida"></option>
+            <option value="Amity University"></option>
+          </datalist>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="reg-year" class="block text-xs font-semibold text-slate-700 mb-1">Year of Study</label>
+            <select id="reg-year" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="PG / Masters">PG / Masters</option>
+            </select>
+          </div>
+          <div>
+            <label for="reg-hostel" class="block text-xs font-semibold text-slate-700 mb-1">Location / Hostel</label>
+            <select id="reg-hostel" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500">
+              <option value="Hostel A">Hostel A</option>
+              <option value="Hostel B">Hostel B</option>
+              <option value="Hostel C">Hostel C</option>
+              <option value="Girls Hostel">Girls Hostel</option>
+              <option value="Knowledge Park PG">Knowledge Park PG</option>
+              <option value="Main Gate">Main Gate</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="reg-role" class="block text-xs font-semibold text-slate-700 mb-1">Primary Account Role</label>
+          <select id="reg-role" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500">
+            <option value="both">Both (Client &amp; Freelancer)</option>
+            <option value="client">Client (Post Jobs)</option>
+            <option value="freelancer">Freelancer (Bid on Jobs)</option>
+          </select>
+        </div>
+        <button id="reg-submit-btn" type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition">Create Account</button>
+      </form>
+
+      <div id="logout-wrap" class="hidden mt-4 pt-3 border-t border-slate-100">
+        <button id="logout-btn" type="button" class="w-full py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: POST JOB -->
+  <div id="modal-post-job" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Post a Freelance Job</h2>
+        <button id="close-post-job-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="post-job-form" class="space-y-3.5">
+        <div>
+          <label for="job-title" class="block text-xs font-semibold text-slate-700 mb-1">Job Title</label>
+          <input id="job-title" type="text" required placeholder="e.g. Clean 12-slide PPT for DBMS Seminar" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="job-category" class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+            <select id="job-category" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500">
+              <option value="PPT & Docs">PPT &amp; Docs</option>
+              <option value="Coding & Projects">Coding &amp; Projects</option>
+              <option value="Design & Video">Design &amp; Video</option>
+              <option value="Notes & Typing">Notes &amp; Typing</option>
+              <option value="Tutoring">Tutoring</option>
+            </select>
+          </div>
+          <div>
+            <label for="job-budget" class="block text-xs font-semibold text-slate-700 mb-1">Max Budget (₹)</label>
+            <input id="job-budget" type="number" min="20" max="10000" required placeholder="300" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="job-university" class="block text-xs font-semibold text-slate-700 mb-1">University / College</label>
+            <input id="job-university" list="university-suggestions" type="text" required class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label for="job-year" class="block text-xs font-semibold text-slate-700 mb-1">Your Year</label>
+            <select id="job-year" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-indigo-500">
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="PG / Masters">PG / Masters</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="job-location" class="block text-xs font-semibold text-slate-700 mb-1">Campus Location / Hostel</label>
+            <input id="job-location" type="text" required placeholder="e.g. Hostel B" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label for="job-deadline" class="block text-xs font-semibold text-slate-700 mb-1">Deadline</label>
+            <input id="job-deadline" type="text" required placeholder="e.g. Tomorrow, 9 PM" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+        <div>
+          <label for="job-desc" class="block text-xs font-semibold text-slate-700 mb-1">Details &amp; Requirements</label>
+          <textarea id="job-desc" rows="3" required placeholder="Describe the task clearly so students can place accurate bids..." class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition">Publish Job</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: JOB DETAIL & PRIVATE BIDDING -->
+  <div id="modal-job-detail" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div id="detail-job-badges" class="flex items-center flex-wrap gap-2 mb-1.5"></div>
+          <h2 id="detail-job-title" class="text-lg font-bold text-slate-900"></h2>
+        </div>
+        <button id="close-job-detail-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="detail-job-body"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: START POOL -->
+  <div id="modal-start-pool" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Start a Free-Delivery Pool</h2>
+        <button id="close-start-pool-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="start-pool-form" class="space-y-3.5">
+        <div>
+          <label for="pool-university" class="block text-xs font-semibold text-slate-700 mb-1">University / Campus</label>
+          <input id="pool-university" list="university-suggestions" type="text" required class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="pool-platform" class="block text-xs font-semibold text-slate-700 mb-1">App / Store</label>
+            <select id="pool-platform" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-emerald-500">
+              <option value="Blinkit">Blinkit</option>
+              <option value="Zepto">Zepto</option>
+              <option value="Instamart">Instamart</option>
+              <option value="Zomato">Zomato</option>
+              <option value="Amazon">Amazon</option>
+            </select>
+          </div>
+          <div>
+            <label for="pool-hostel" class="block text-xs font-semibold text-slate-700 mb-1">Hostel / Pickup Location</label>
+            <select id="pool-hostel" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-emerald-500">
+              <option value="Hostel A">Hostel A</option>
+              <option value="Hostel B">Hostel B</option>
+              <option value="Hostel C">Hostel C</option>
+              <option value="Girls Hostel">Girls Hostel</option>
+              <option value="Knowledge Park PG">Knowledge Park PG</option>
+              <option value="Main Gate">Main Gate</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="pool-target" class="block text-xs font-semibold text-slate-700 mb-1">Free Delivery Target (₹)</label>
+            <input id="pool-target" type="number" min="50" max="2000" value="100" required class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label for="pool-closes" class="block text-xs font-semibold text-slate-700 mb-1">Ordering Time</label>
+            <input id="pool-closes" type="text" value="In 20 mins" required class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <div class="text-xs font-semibold text-slate-500 mb-2">Your First Item in This Cart</div>
+          <div class="grid grid-cols-3 gap-2.5">
+            <div class="col-span-2">
+              <input id="pool-first-item" type="text" required placeholder="e.g. Maggi 2-pack" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+            </div>
+            <div>
+              <input id="pool-first-price" type="number" min="5" max="1000" required placeholder="₹ Price" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition">Launch Delivery Pool</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: POOL DETAILS -->
+  <div id="modal-pool-detail" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div id="detail-pool-badges" class="flex items-center flex-wrap gap-2 mb-1"></div>
+          <h2 id="detail-pool-title" class="text-lg font-bold text-slate-900"></h2>
+        </div>
+        <button id="close-pool-detail-modal" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="detail-pool-body"></div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <script>
+    (function () {
+      const TOKEN_KEY = 'campuslink_v3_token';
+      let token = null;
+      try { token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+
+      let state = {
+        activeTab: 'freelance',
+        user: null,
+        jobs: [],
+        pools: [],
+        adminData: null,
+        adminUniFilter: 'all'
+      };
+      let authMode = 'login';
+      let pendingActionAfterLogin = null;
+
+      function isAnyModalOpen() {
+        return ['modal-auth', 'modal-post-job', 'modal-job-detail', 'modal-start-pool', 'modal-pool-detail']
+          .some(id => !document.getElementById(id).classList.contains('hidden'));
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        const colors = type === 'emerald'
+          ? 'bg-emerald-900 text-white border-emerald-700'
+          : (type === 'error' ? 'bg-rose-900 text-white border-rose-700' : 'bg-slate-900 text-white border-slate-700');
+        el.className = `toast-enter px-4 py-3 rounded-xl text-sm font-medium shadow-lg border ${colors}`;
+        el.textContent = message;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.25s';
+          setTimeout(() => el.remove(), 260);
+        }, 3200);
+      }
+
+      function copyText(text, label) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => showToast(label || 'Copied')).catch(() => fallbackCopy(text, label));
+        } else {
+          fallbackCopy(text, label);
+        }
+      }
+
+      function fallbackCopy(text, label) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showToast(label || 'Copied'); } catch (e) {}
+        ta.remove();
+      }
+
+      async function api(path, method, body) {
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        if (body !== undefined) headers['Content-Type'] = 'application/json';
+        const res = await fetch(path, {
+          method: method || 'GET',
+          headers,
+          body: body !== undefined ? JSON.stringify(body) : undefined
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+      }
+
+      async function syncAll(force) {
+        if (!force && isAnyModalOpen()) return;
+        try {
+          if (token && !state.user) {
+            try {
+              const me = await api('/api/auth/me', 'GET');
+              state.user = me.user;
+            } catch (e) {
+              token = null;
+              try { localStorage.removeItem(TOKEN_KEY); } catch (err) {}
+            }
+          }
+          const data = await api('/api/state', 'GET');
+          state.jobs = data.jobs || [];
+          state.pools = data.pools || [];
+          if (state.user && state.user.isAdmin && state.activeTab === 'admin') {
+            state.adminData = await api('/api/admin/overview', 'GET');
+          }
+          renderAll();
+        } catch (e) {
+          renderAll();
+        }
+      }
+
+      function requireLogin(cb) {
+        if (state.user) cb();
+        else {
+          pendingActionAfterLogin = cb;
+          openAuthModal('login');
+        }
+      }
+
+      function getPoolTotal(pool) {
+        return (pool.items || []).reduce((s, i) => s + (Number(i.price) || 0), 0);
+      }
+
+      function populateUniversityFilters() {
+        const jobUnis = new Set(state.jobs.map(j => j.posterUniversity).filter(Boolean));
+        const poolUnis = new Set(state.pools.map(p => p.university).filter(Boolean));
+        if (state.user && state.user.university) {
+          jobUnis.add(state.user.university);
+          poolUnis.add(state.user.university);
+        }
+        const jSel = document.getElementById('job-university-filter');
+        const curJ = jSel.value || 'all';
+        jSel.innerHTML = '<option value="all">All Universities</option>' +
+          Array.from(jobUnis).sort().map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+        jSel.value = jobUnis.has(curJ) ? curJ : 'all';
+
+        const pSel = document.getElementById('pool-university-filter');
+        const curP = pSel.value || 'all';
+        pSel.innerHTML = '<option value="all">All Universities</option>' +
+          Array.from(poolUnis).sort().map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+        pSel.value = poolUnis.has(curP) ? curP : 'all';
+      }
+
+      async function setTab(tab) {
+        state.activeTab = tab;
+        if (tab === 'admin' && state.user && state.user.isAdmin) {
+          try { state.adminData = await api('/api/admin/overview', 'GET'); } catch (e) {}
+        }
+        renderAll();
+      }
+
+      function renderHeader() {
+        const openJobs = state.jobs.filter(j => j.status === 'open').length;
+        const openPools = state.pools.filter(p => p.status !== 'ordered').length;
+        document.getElementById('badge-jobs').textContent = openJobs;
+        document.getElementById('badge-pools').textContent = openPools;
+        document.getElementById('stat-open-jobs').textContent = openJobs;
+        document.getElementById('stat-active-pools').textContent = openPools;
+
+        const isAdmin = Boolean(state.user && state.user.isAdmin);
+        document.getElementById('tab-btn-admin').classList.toggle('hidden', !isAdmin);
+        document.getElementById('mob-tab-admin').classList.toggle('hidden', !isAdmin);
+        document.getElementById('mob-tabs-grid').className = isAdmin
+          ? 'grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl'
+          : 'grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl';
+
+        ['freelance', 'pools', 'activity', 'admin'].forEach(t => {
+          const btn = document.getElementById(`tab-btn-${t}`);
+          const mob = document.getElementById(`mob-tab-${t}`);
+          const active = state.activeTab === t;
+          if (btn && !btn.classList.contains('hidden')) {
+            btn.className = active
+              ? 'nav-tab px-3 py-1.5 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 bg-white text-slate-900 shadow-sm'
+              : 'nav-tab px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+          }
+          if (mob && !mob.classList.contains('hidden')) {
+            mob.className = active
+              ? 'mob-tab py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center bg-white text-slate-900 shadow-sm'
+              : 'mob-tab py-1.5 px-2 rounded-lg text-xs font-medium transition text-center text-slate-600';
+          }
+        });
+
+        const ctaBtn = document.getElementById('primary-cta-btn');
+        const ctaLabel = document.getElementById('primary-cta-label');
+        if (state.activeTab === 'pools') {
+          ctaBtn.className = 'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-sm';
+          ctaLabel.textContent = 'Start Pool';
+        } else {
+          ctaBtn.className = 'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm';
+          ctaLabel.textContent = 'Post Job';
+        }
+
+        document.getElementById('auth-btn-label').textContent = state.user
+          ? `${state.user.name.split(' ')[0]}${state.user.isAdmin ? ' (Admin)' : ' · ' + state.user.year}`
+          : 'Sign In';
+
+        const hTitle = document.getElementById('hero-title');
+        const hSub = document.getElementById('hero-subtitle');
+        if (state.activeTab === 'pools') {
+          hTitle.textContent = 'Combine small hostel items to unlock free delivery.';
+          hSub.textContent = 'Filter by university and hostel, add your ₹10–₹40 item, and coordinate pickup directly via phone.';
+        } else if (state.activeTab === 'activity') {
+          hTitle.textContent = 'Your posted jobs, private bids, and delivery pools.';
+          hSub.textContent = 'Only you see bids submitted on your jobs. Accepted matches unlock WhatsApp and phone contact.';
+        } else if (state.activeTab === 'admin') {
+          hTitle.textContent = 'CampusLink Admin Console';
+          hSub.textContent = 'Monitor registered students, filter by university, suspend spam accounts, and moderate jobs or pools.';
+        } else {
+          hTitle.textContent = 'Post a task, receive private bids, choose the best student.';
+          hSub.textContent = 'Only the job poster sees bids on their job. Accept one bid to unlock direct WhatsApp and phone contact.';
+        }
+
+        document.getElementById('view-freelance').classList.toggle('hidden', state.activeTab !== 'freelance');
+        document.getElementById('view-pools').classList.toggle('hidden', state.activeTab !== 'pools');
+        document.getElementById('view-activity').classList.toggle('hidden', state.activeTab !== 'activity');
+        document.getElementById('view-admin').classList.toggle('hidden', state.activeTab !== 'admin');
+      }
+
+      function renderJobs() {
+        const search = (document.getElementById('job-search').value || '').trim().toLowerCase();
+        const uni = document.getElementById('job-university-filter').value;
+        const cat = document.getElementById('job-category-filter').value;
+        const sort = document.getElementById('job-sort').value;
+
+        let list = state.jobs.filter(j => {
+          const mUni = uni === 'all' || j.posterUniversity === uni;
+          const mCat = cat === 'all' || j.category === cat;
+          const mSearch = !search ||
+            j.title.toLowerCase().includes(search) ||
+            j.description.toLowerCase().includes(search) ||
+            j.posterUniversity.toLowerCase().includes(search);
+          return mUni && mCat && mSearch;
+        });
+
+        if (sort === 'highest-budget') list.sort((a, b) => b.budget - a.budget);
+        else list.sort((a, b) => b.createdAt - a.createdAt);
+
+        const container = document.getElementById('jobs-list');
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full bg-white border border-slate-200 rounded-2xl p-10 text-center">
+              <p class="text-base font-semibold text-slate-800">No jobs posted yet</p>
+              <p class="text-sm text-slate-500 mt-1 mb-4">Be the first student on your campus to post a task and receive private bids.</p>
+              <button type="button" data-trigger-post-job="1" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition">+ Post First Job</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = list.map(job => {
+          const isCompleted = job.status === 'completed';
+          const isMatched = Boolean(job.acceptedBidId);
+          const myBid = !job.isPoster && job.bids && job.bids.length > 0 ? job.bids[0] : null;
+          const statusBadge = isCompleted
+            ? '<span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Completed</span>'
+            : (isMatched
+              ? '<span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Matched</span>'
+              : '<span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Open</span>');
+
+          let bidSummary = `${job.bidCount} private bid${job.bidCount === 1 ? '' : 's'}`;
+          if (job.isPoster && job.bids.length > 0) {
+            const cheapest = Math.min(...job.bids.map(b => b.price));
+            bidSummary = `Lowest bid: ₹${cheapest} (${job.bids.length} total)`;
+          } else if (myBid) {
+            bidSummary = `Your bid: ₹${myBid.price} · ${job.bidCount} total`;
+          }
+
+          return `
+            <article class="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-300 transition">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">${escapeHtml(job.category)}</span>
+                    <span class="text-xs font-medium text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">${escapeHtml(job.posterUniversity)}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    ${job.isPoster ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-900 text-white">Your Job</span>' : ''}
+                    ${statusBadge}
+                  </div>
+                </div>
+                <h3 class="font-bold text-slate-900 text-base leading-snug">${escapeHtml(job.title)}</h3>
+                <p class="text-sm text-slate-600 mt-1.5">${escapeHtml(job.description)}</p>
+              </div>
+              <div class="mt-4 pt-3.5 border-t border-slate-100">
+                <div class="flex items-center justify-between text-xs text-slate-500 mb-3 gap-2 flex-wrap">
+                  <span><strong class="text-slate-700">${escapeHtml(job.posterName)}</strong> · ${escapeHtml(job.posterYear)} · ${escapeHtml(job.posterHostel)}</span>
+                  <span>Due: <strong class="text-slate-700">${escapeHtml(job.deadline)}</strong></span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-xs text-slate-500">Max Budget ₹${job.budget}</div>
+                    <div class="text-sm font-bold text-indigo-600">${escapeHtml(bidSummary)}</div>
+                  </div>
+                  <button type="button" data-open-job="${job.id}" class="px-3.5 py-2 rounded-xl text-xs font-semibold ${isMatched ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-900 text-white hover:bg-slate-800'} transition">
+                    ${job.isPoster ? 'Review Bids' : (isMatched ? 'View Status' : (myBid ? 'Update Bid' : 'Place Bid'))}
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function openJobDetail(jobId) {
+        const job = state.jobs.find(j => j.id === jobId);
+        if (!job) return;
+        const isMatched = Boolean(job.acceptedBidId);
+        const isCompleted = job.status === 'completed';
+        const isAdmin = Boolean(state.user && state.user.isAdmin);
+        const myBid = !job.isPoster && !isAdmin && job.bids && job.bids.length > 0 ? job.bids[0] : null;
+
+        document.getElementById('detail-job-badges').innerHTML = `
+          <span class="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">${escapeHtml(job.category)}</span>
+          <span class="text-xs font-medium text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">${escapeHtml(job.posterUniversity)}</span>
+          <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${isCompleted ? 'bg-slate-200 text-slate-700' : (isMatched ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-900 text-white')}">
+            ${isCompleted ? 'Completed' : (isMatched ? 'Matched' : 'Open')}
+          </span>
+        `;
+        document.getElementById('detail-job-title').textContent = job.title;
+
+        let contactHtml = '';
+        if (job.matchedContact) {
+          const c = job.matchedContact;
+          const waMsg = encodeURIComponent(`Hi ${c.name}, connecting via CampusLink for "${job.title}" (₹${c.agreedPrice}).`);
+          contactHtml = `
+            <div class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div class="text-xs font-bold text-emerald-800 uppercase tracking-wide mb-1">Match Confirmed · ₹${c.agreedPrice}</div>
+              <div class="text-sm text-emerald-950 font-semibold">${escapeHtml(c.role)}: ${escapeHtml(c.name)}</div>
+              <div class="text-xs text-emerald-800 mt-0.5">${escapeHtml(c.year)} · ${escapeHtml(c.university)} · ${escapeHtml(c.hostel)}</div>
+              <div class="mt-3 pt-3 border-t border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div class="text-base font-bold text-slate-900">+91 ${escapeHtml(c.phone)}</div>
+                <div class="flex gap-2">
+                  <button type="button" data-copy-phone="${escapeHtml(c.phone)}" class="px-3 py-2 rounded-lg text-xs font-semibold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 transition">Copy Number</button>
+                  <a href="https://wa.me/91${escapeHtml(c.phone)}?text=${waMsg}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition">Open WhatsApp</a>
+                </div>
+              </div>
+              <p class="text-[11px] text-emerald-700 mt-2">Coordinate work and payment directly on mutual understanding.</p>
+            </div>
+          `;
+        } else if (isMatched) {
+          contactHtml = `<div class="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">This job has already matched with a student. Contact details are private to the matched pair.</div>`;
+        }
+
+        let bidsSectionHtml = '';
+        if (job.isPoster || isAdmin) {
+          const sorted = [...job.bids].sort((a, b) => a.price - b.price);
+          bidsSectionHtml = `
+            <div class="mt-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-2.5">${job.isPoster ? 'Private Bids on Your Job' : 'Admin View: All Bids'} (${sorted.length})</h3>
+              ${sorted.length === 0
+                ? '<div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 text-center">No bids submitted yet.</div>'
+                : `<div class="space-y-2.5">${sorted.map((b, idx) => `
+                    <div class="p-3.5 rounded-xl border ${b.id === job.acceptedBidId ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200 bg-white'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="font-bold text-slate-900 text-base">₹${b.price}</span>
+                          <span class="text-sm font-semibold text-slate-800">${escapeHtml(b.bidderName)}</span>
+                          ${idx === 0 && !isMatched ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Lowest Bid</span>' : ''}
+                          ${b.id === job.acceptedBidId ? '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Selected</span>' : ''}
+                        </div>
+                        <div class="text-xs text-indigo-700 font-medium mt-0.5">${escapeHtml(b.bidderUniversity)} · ${escapeHtml(b.bidderYear)} · ${escapeHtml(b.bidderHostel)}</div>
+                        <p class="text-xs text-slate-600 mt-1">${escapeHtml(b.note)} <span class="text-slate-400">· ETA: ${escapeHtml(b.eta)}</span></p>
+                      </div>
+                      ${job.isPoster && !isMatched ? `<button type="button" data-accept-bid="${b.id}" class="shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition">Choose &amp; Unlock Phone</button>` : ''}
+                    </div>
+                  `).join('')}</div>`
+              }
+              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                ${isMatched && !isCompleted ? '<button id="complete-job-btn" type="button" class="text-xs font-semibold text-emerald-700 hover:underline">Mark Job Completed</button>' : '<span></span>'}
+                <button id="delete-job-btn" type="button" class="text-xs font-semibold text-rose-600 hover:underline">Delete Job</button>
+              </div>
+            </div>
+          `;
+        } else {
+          bidsSectionHtml = `
+            <div class="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+              <strong>Private Bidding:</strong> Other students' bids are hidden so only the job poster can compare rates. (${job.bidCount} total bid${job.bidCount === 1 ? '' : 's'} so far.)
+            </div>
+            ${myBid ? `
+              <div class="mt-3 p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/50">
+                <div class="text-xs font-bold text-indigo-800">Your Submitted Bid · ₹${myBid.price}</div>
+                <div class="text-xs text-slate-700 mt-1">${escapeHtml(myBid.note)} · ETA: ${escapeHtml(myBid.eta)}</div>
+              </div>
+            ` : ''}
+            ${!isMatched ? `
+              <div class="mt-5 pt-4 border-t border-slate-200">
+                <h3 class="text-sm font-bold text-slate-900 mb-2.5">${myBid ? 'Update Your Bid' : 'Place Your Private Bid'}</h3>
+                <form id="place-bid-form" class="space-y-3">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label for="bid-price" class="block text-xs font-semibold text-slate-600 mb-1">Your Rate (₹)</label>
+                      <input id="bid-price" type="number" min="10" max="10000" required value="${myBid ? myBid.price : ''}" placeholder="${job.budget}" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label for="bid-eta" class="block text-xs font-semibold text-slate-600 mb-1">Delivery Time</label>
+                      <input id="bid-eta" type="text" required value="${myBid ? escapeHtml(myBid.eta) : ''}" placeholder="e.g. 5 hours" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <label for="bid-note" class="block text-xs font-semibold text-slate-600 mb-1">Short Pitch</label>
+                    <input id="bid-note" type="text" required value="${myBid ? escapeHtml(myBid.note) : ''}" placeholder="Why pick you?" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500" />
+                  </div>
+                  <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                    ${myBid ? 'Save Updated Bid' : 'Submit Private Bid'}
+                  </button>
+                </form>
+              </div>
+            ` : ''}
+          `;
+        }
+
+        document.getElementById('detail-job-body').innerHTML = `
+          <p class="text-sm text-slate-600 leading-relaxed">${escapeHtml(job.description)}</p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-600 bg-slate-50 px-3.5 py-2.5 rounded-xl">
+            <span>Posted by <strong class="text-slate-900">${escapeHtml(job.posterName)}</strong> (${escapeHtml(job.posterYear)} · ${escapeHtml(job.posterUniversity)} · ${escapeHtml(job.posterHostel)})</span>
+            <span>·</span>
+            <span>Max Budget: <strong class="text-slate-900">₹${job.budget}</strong></span>
+            <span>·</span>
+            <span>Due: <strong class="text-slate-900">${escapeHtml(job.deadline)}</strong></span>
+          </div>
+          ${contactHtml}
+          ${bidsSectionHtml}
+        `;
+
+        const bidForm = document.getElementById('place-bid-form');
+        if (bidForm) {
+          bidForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const price = Number(document.getElementById('bid-price').value);
+            const eta = document.getElementById('bid-eta').value.trim();
+            const note = document.getElementById('bid-note').value.trim();
+            requireLogin(async () => {
+              try {
+                await api(`/api/jobs/${encodeURIComponent(job.id)}/bids`, 'POST', { price, eta, note });
+                await syncAll(true);
+                openJobDetail(job.id);
+                showToast(`Private bid of ₹${price} submitted!`);
+              } catch (err) { showToast(err.message, 'error'); }
+            });
+          });
+        }
+
+        document.querySelectorAll('#detail-job-body [data-accept-bid]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await api(`/api/jobs/${encodeURIComponent(job.id)}/accept`, 'POST', { bidId: btn.getAttribute('data-accept-bid') });
+              await syncAll(true);
+              openJobDetail(job.id);
+              showToast('Bid accepted! Direct phone contact unlocked.', 'emerald');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        });
+
+        const completeBtn = document.getElementById('complete-job-btn');
+        if (completeBtn) {
+          completeBtn.addEventListener('click', async () => {
+            try {
+              await api(`/api/jobs/${encodeURIComponent(job.id)}/complete`, 'POST');
+              await syncAll(true);
+              openJobDetail(job.id);
+              showToast('Job marked completed!', 'emerald');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        }
+
+        const delBtn = document.getElementById('delete-job-btn');
+        if (delBtn) {
+          delBtn.addEventListener('click', async () => {
+            try {
+              await api(`/api/jobs/${encodeURIComponent(job.id)}`, 'DELETE');
+              document.getElementById('modal-job-detail').classList.add('hidden');
+              await syncAll(true);
+              showToast('Job deleted.');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        }
+
+        document.querySelectorAll('#detail-job-body [data-copy-phone]').forEach(btn => {
+          btn.addEventListener('click', () => copyText(btn.getAttribute('data-copy-phone'), 'Phone number copied!'));
+        });
+
+        document.getElementById('modal-job-detail').classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      function renderPools() {
+        const uni = document.getElementById('pool-university-filter').value;
+        const hostel = document.getElementById('pool-hostel-filter').value;
+        const plat = document.getElementById('pool-platform-filter').value;
+
+        const list = state.pools.filter(p =>
+          (uni === 'all' || p.university === uni) &&
+          (hostel === 'all' || p.hostel === hostel) &&
+          (plat === 'all' || p.platform === plat)
+        );
+
+        const container = document.getElementById('pools-list');
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full bg-white border border-slate-200 rounded-2xl p-10 text-center">
+              <p class="text-base font-semibold text-slate-800">No active delivery pools yet</p>
+              <p class="text-sm text-slate-500 mt-1 mb-4">Start a pool with your ₹10–₹40 item so hostelmates can join and unlock free delivery together.</p>
+              <button type="button" data-trigger-start-pool="1" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition">+ Start First Cart Pool</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = list.map(pool => {
+          const total = getPoolTotal(pool);
+          const remaining = Math.max(0, pool.target - total);
+          const pct = Math.min(100, Math.round((total / pool.target) * 100));
+          const unlocked = total >= pool.target;
+          const isOrdered = pool.status === 'ordered';
+
+          return `
+            <article class="bg-white border ${isOrdered ? 'border-slate-200 opacity-75' : (unlocked ? 'border-emerald-300' : 'border-slate-200')} rounded-2xl p-5 flex flex-col justify-between transition">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-900 text-white">${escapeHtml(pool.platform)}</span>
+                    <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800">${escapeHtml(pool.university)}</span>
+                    <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">${escapeHtml(pool.hostel)}</span>
+                  </div>
+                  <span class="text-xs font-semibold ${isOrdered ? 'text-slate-500' : (unlocked ? 'text-emerald-700' : 'text-amber-700')}">
+                    ${isOrdered ? 'Order Placed' : (unlocked ? 'Free Delivery Ready!' : `₹${remaining} left`)}
+                  </span>
+                </div>
+                <div class="mt-2">
+                  <div class="flex items-baseline justify-between mb-1.5">
+                    <span class="text-lg font-bold text-slate-900">₹${total} <span class="text-xs font-normal text-slate-500">/ ₹${pool.target}</span></span>
+                    <span class="text-xs text-slate-500">${escapeHtml(pool.closes)}</span>
+                  </div>
+                  <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full" style="width: ${pct}%"></div>
+                  </div>
+                </div>
+                <div class="mt-3.5 bg-slate-50 rounded-xl p-3 divide-y divide-slate-200/60">
+                  ${pool.items.slice(0, 3).map(it => `
+                    <div class="flex items-center justify-between text-xs py-1">
+                      <span class="text-slate-700 truncate pr-2"><strong>${escapeHtml(it.studentName.split(' ')[0])}</strong> · ${escapeHtml(it.itemName)}</span>
+                      <span class="font-semibold text-slate-900 shrink-0">₹${it.price}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div class="text-xs text-slate-500">Starter: <strong class="text-slate-700">${escapeHtml(pool.starterName.split(' ')[0])}</strong> (${escapeHtml(pool.starterYear)})</div>
+                <button type="button" data-open-pool="${pool.id}" class="px-3.5 py-2 rounded-xl text-xs font-semibold ${isOrdered ? 'bg-slate-200 text-slate-700' : (unlocked ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-slate-900 text-white hover:bg-slate-800')} transition">
+                  ${isOrdered ? 'View Split' : '+ Join / View Cart'}
+                </button>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function openPoolDetail(poolId) {
+        const pool = state.pools.find(p => p.id === poolId);
+        if (!pool) return;
+        const total = getPoolTotal(pool);
+        const remaining = Math.max(0, pool.target - total);
+        const unlocked = total >= pool.target;
+        const pct = Math.min(100, Math.round((total / pool.target) * 100));
+        const isOrdered = pool.status === 'ordered';
+        const isAdmin = Boolean(state.user && state.user.isAdmin);
+
+        document.getElementById('detail-pool-badges').innerHTML = `
+          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-900 text-white">${escapeHtml(pool.platform)}</span>
+          <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800">${escapeHtml(pool.university)}</span>
+          <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">${escapeHtml(pool.hostel)}</span>
+        `;
+        document.getElementById('detail-pool-title').textContent = `${pool.platform} Pool · ${pool.hostel}`;
+
+        const itemsHtml = pool.items.map(it => {
+          const canDel = !isOrdered && state.user && (it.studentId === state.user.id || pool.isStarter || isAdmin) && pool.items.length > 1;
+          return `
+            <div class="flex items-center justify-between py-2.5 text-sm gap-2">
+              <div>
+                <div class="font-medium text-slate-900">${escapeHtml(it.itemName)}</div>
+                <div class="text-xs text-slate-500">${escapeHtml(it.studentName)} · ${escapeHtml(it.studentYear)}</div>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <span class="font-bold text-slate-900">₹${it.price}</span>
+                ${canDel ? `<button type="button" data-remove-pool-item="${it.id}" class="text-xs text-rose-600 font-semibold hover:underline">Remove</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const contactBox = pool.starterPhone ? `
+          <div class="mt-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <div class="text-xs text-emerald-800 font-semibold">Pool Starter · ${escapeHtml(pool.starterName)} (${escapeHtml(pool.starterYear)})</div>
+              <div class="text-sm font-bold text-slate-900">+91 ${escapeHtml(pool.starterPhone)}</div>
+              <div class="text-[11px] text-emerald-700 mt-0.5">Coordinate pickup &amp; settle directly on mutual understanding.</div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button id="copy-pool-invite-btn" type="button" class="px-3 py-2 rounded-lg text-xs font-semibold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 transition">Share Invite</button>
+              <a href="https://wa.me/91${escapeHtml(pool.starterPhone)}?text=${encodeURIComponent(`Hi ${pool.starterName}, I joined your ${pool.platform} pool at ${pool.university} (${pool.hostel}) on CampusLink!`)}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition">WhatsApp</a>
+            </div>
+          </div>
+        ` : `<div class="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">Add an item to this pool to unlock the starter's phone number and WhatsApp link.</div>`;
+
+        document.getElementById('detail-pool-body').innerHTML = `
+          <div class="mt-2">
+            <div class="flex items-baseline justify-between mb-1.5">
+              <span class="text-xl font-bold ${unlocked ? 'text-emerald-600' : 'text-slate-900'}">₹${total} <span class="text-xs font-normal text-slate-500">/ ₹${pool.target}</span></span>
+              <span class="text-xs font-semibold ${isOrdered ? 'text-slate-500' : (unlocked ? 'text-emerald-700' : 'text-amber-700')}">
+                ${isOrdered ? 'Order already placed' : (unlocked ? 'Free delivery threshold reached!' : `₹${remaining} more needed`)}
+              </span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full" style="width: ${pct}%"></div>
+            </div>
+            <div class="text-xs text-slate-500 mt-1.5">Ordering window: <strong class="text-slate-700">${escapeHtml(pool.closes)}</strong></div>
+          </div>
+          ${contactBox}
+          <div class="mt-4">
+            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-1">Cart Items (${pool.items.length})</h3>
+            <div class="divide-y divide-slate-100 border-t border-b border-slate-100">${itemsHtml}</div>
+          </div>
+          ${!isOrdered ? `
+            <div class="mt-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-2">Add Your Small Item to This Cart</h3>
+              <form id="add-pool-item-form" class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                <input id="new-item-name" type="text" required placeholder="e.g. Chips / Pen / Maggi" class="sm:col-span-2 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+                <input id="new-item-price" type="number" min="5" max="1000" required placeholder="₹ Price" class="px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500" />
+                <button type="submit" class="py-2.5 px-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition">Add</button>
+              </form>
+            </div>
+          ` : ''}
+          ${(pool.isStarter || isAdmin) ? `
+            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+              <button id="toggle-pool-status-btn" type="button" class="text-xs font-semibold text-emerald-700 hover:underline">${isOrdered ? 'Reopen Pool' : 'Mark Pool as Ordered'}</button>
+              <button id="delete-pool-btn" type="button" class="text-xs font-semibold text-rose-600 hover:underline">Delete Pool</button>
+            </div>
+          ` : ''}
+        `;
+
+        const copyBtn = document.getElementById('copy-pool-invite-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            const msg = unlocked
+              ? `Free ${pool.platform} delivery unlocked at ${pool.university} (${pool.hostel}) — ₹${total}/₹${pool.target}!`
+              : `Only ₹${remaining} left for FREE ${pool.platform} delivery at ${pool.university} (${pool.hostel})! Join our cart on CampusLink.`;
+            copyText(msg, 'WhatsApp invite copied!');
+          });
+        }
+
+        const addForm = document.getElementById('add-pool-item-form');
+        if (addForm) {
+          addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const itemName = document.getElementById('new-item-name').value.trim();
+            const price = Number(document.getElementById('new-item-price').value);
+            requireLogin(async () => {
+              try {
+                await api(`/api/pools/${encodeURIComponent(pool.id)}/items`, 'POST', { itemName, price });
+                await syncAll(true);
+                openPoolDetail(pool.id);
+                showToast(`Added ${itemName} (₹${price}) to cart!`, 'emerald');
+              } catch (err) { showToast(err.message, 'error'); }
+            });
+          });
+        }
+
+        document.querySelectorAll('#detail-pool-body [data-remove-pool-item]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await api(`/api/pools/${encodeURIComponent(pool.id)}/items/${encodeURIComponent(btn.getAttribute('data-remove-pool-item'))}`, 'DELETE');
+              await syncAll(true);
+              openPoolDetail(pool.id);
+              showToast('Item removed.');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        });
+
+        const toggleBtn = document.getElementById('toggle-pool-status-btn');
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', async () => {
+            try {
+              await api(`/api/pools/${encodeURIComponent(pool.id)}/status`, 'PATCH', { status: isOrdered ? 'open' : 'ordered' });
+              await syncAll(true);
+              openPoolDetail(pool.id);
+              showToast(isOrdered ? 'Pool reopened.' : 'Pool marked as ordered!');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        }
+
+        const delPoolBtn = document.getElementById('delete-pool-btn');
+        if (delPoolBtn) {
+          delPoolBtn.addEventListener('click', async () => {
+            try {
+              await api(`/api/pools/${encodeURIComponent(pool.id)}`, 'DELETE');
+              document.getElementById('modal-pool-detail').classList.add('hidden');
+              await syncAll(true);
+              showToast('Pool deleted.');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        }
+
+        document.getElementById('modal-pool-detail').classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      function renderActivity() {
+        const container = document.getElementById('activity-content');
+        if (!state.user) {
+          container.innerHTML = `
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-md mx-auto">
+              <h2 class="text-base font-bold text-slate-900">Sign in to view your activity</h2>
+              <p class="text-sm text-slate-600 mt-1 mb-4">Manage jobs you posted, review private bids, and track your delivery pools.</p>
+              <button id="activity-login-btn" type="button" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition">Sign In / Register</button>
+            </div>
+          `;
+          document.getElementById('activity-login-btn').addEventListener('click', () => openAuthModal('login'));
+          return;
+        }
+
+        const myJobs = state.jobs.filter(j => j.isPoster);
+        const myBids = state.jobs.filter(j => !j.isPoster && j.bids && j.bids.some(b => b.bidderId === state.user.id))
+          .map(j => ({ job: j, bid: j.bids.find(b => b.bidderId === state.user.id) }));
+        const myPools = state.pools.filter(p => p.isStarter || p.items.some(i => i.studentId === state.user.id));
+
+        container.innerHTML = `
+          <div class="mb-5 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="text-sm text-slate-700">
+              <strong class="text-slate-900">${escapeHtml(state.user.name)}</strong> · ${escapeHtml(state.user.year)} · <strong>${escapeHtml(state.user.university)}</strong> (${escapeHtml(state.user.hostel)})
+              ${state.user.isAdmin ? '<span class="ml-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Admin</span>' : ''}
+            </div>
+            <button id="edit-profile-inline-btn" type="button" class="text-xs font-semibold text-indigo-600 hover:underline self-start sm:self-auto">Edit Profile</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-3">Client · Jobs Posted (${myJobs.length})</h3>
+              ${myJobs.length === 0 ? '<p class="text-xs text-slate-500">No jobs posted yet.</p>' : `
+                <div class="space-y-3">${myJobs.map(j => `
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <div class="font-semibold text-sm text-slate-900">${escapeHtml(j.title)}</div>
+                    <div class="text-xs text-slate-500 mt-1">${j.bidCount} private bid(s) · ${escapeHtml(j.status)}</div>
+                    <button type="button" data-open-job="${j.id}" class="mt-2 text-xs font-semibold text-indigo-600 hover:underline">Review Bids →</button>
+                  </div>
+                `).join('')}</div>
+              `}
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-3">Freelancer · Your Bids (${myBids.length})</h3>
+              ${myBids.length === 0 ? '<p class="text-xs text-slate-500">No bids submitted yet.</p>' : `
+                <div class="space-y-3">${myBids.map(({ job, bid }) => `
+                  <div class="p-3 rounded-xl bg-slate-50 border ${job.isWinner ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200/70'}">
+                    <div class="font-semibold text-sm text-slate-900">${escapeHtml(job.title)}</div>
+                    <div class="text-xs text-slate-600 mt-1">Your bid: <strong>₹${bid.price}</strong> · ${job.isWinner ? '<span class="text-emerald-700 font-semibold">Selected!</span>' : (job.acceptedBidId ? 'Closed' : 'Pending')}</div>
+                    <button type="button" data-open-job="${job.id}" class="mt-2 text-xs font-semibold text-indigo-600 hover:underline">${job.isWinner ? 'View Client Phone →' : 'View Job →'}</button>
+                  </div>
+                `).join('')}</div>
+              `}
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-3">User · Delivery Pools (${myPools.length})</h3>
+              ${myPools.length === 0 ? '<p class="text-xs text-slate-500">No delivery pools joined yet.</p>' : `
+                <div class="space-y-3">${myPools.map(p => `
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <div class="font-semibold text-sm text-slate-900">${escapeHtml(p.platform)} · ${escapeHtml(p.university)} (${escapeHtml(p.hostel)})</div>
+                    <div class="text-xs text-slate-600 mt-1">Cart: ₹${getPoolTotal(p)} / ₹${p.target}</div>
+                    <button type="button" data-open-pool="${p.id}" class="mt-2 text-xs font-semibold text-emerald-700 hover:underline">Open Cart &amp; Contact →</button>
+                  </div>
+                `).join('')}</div>
+              `}
+            </div>
+          </div>
+        `;
+        document.getElementById('edit-profile-inline-btn').addEventListener('click', () => openAuthModal('profile'));
+      }
+
+      function renderAdmin() {
+        const container = document.getElementById('admin-content');
+        if (!state.user || !state.user.isAdmin) {
+          container.innerHTML = '<div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-sm text-slate-600">Admin access required.</div>';
+          return;
+        }
+        const d = state.adminData;
+        if (!d) {
+          container.innerHTML = '<div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-sm text-slate-500">Loading admin dashboard...</div>';
+          return;
+        }
+
+        const allUnis = new Set([
+          ...d.users.map(u => u.university),
+          ...d.jobs.map(j => j.posterUniversity),
+          ...d.pools.map(p => p.university)
+        ].filter(Boolean));
+        const uniFilter = state.adminUniFilter || 'all';
+
+        const users = d.users.filter(u => uniFilter === 'all' || u.university === uniFilter);
+        const jobs = d.jobs.filter(j => uniFilter === 'all' || j.posterUniversity === uniFilter);
+        const pools = d.pools.filter(p => uniFilter === 'all' || p.university === uniFilter);
+
+        container.innerHTML = `
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs text-slate-500">Registered Users</div>
+              <div class="text-2xl font-bold text-slate-900 mt-1">${d.stats.totalUsers}</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs text-slate-500">Total Jobs</div>
+              <div class="text-2xl font-bold text-indigo-600 mt-1">${d.stats.totalJobs}</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs text-slate-500">Private Bids</div>
+              <div class="text-2xl font-bold text-slate-900 mt-1">${d.stats.totalBids}</div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs text-slate-500">Delivery Pools</div>
+              <div class="text-2xl font-bold text-emerald-600 mt-1">${d.stats.totalPools}</div>
+            </div>
+          </div>
+
+          <div class="mb-5 flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <label for="admin-uni-select" class="text-xs font-semibold text-slate-600">Filter University:</label>
+              <select id="admin-uni-select" class="px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl text-slate-700">
+                <option value="all">All Universities</option>
+                ${Array.from(allUnis).sort().map(u => `<option value="${escapeHtml(u)}" ${uniFilter === u ? 'selected' : ''}>${escapeHtml(u)}</option>`).join('')}
+              </select>
+            </div>
+            <button id="admin-refresh-btn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition">Refresh Data</button>
+          </div>
+
+          <!-- Users Table -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 overflow-x-auto">
+            <h3 class="text-sm font-bold text-slate-900 mb-3">Students (${users.length})</h3>
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500">
+                  <th class="pb-2 pr-3">Name &amp; Phone</th>
+                  <th class="pb-2 pr-3">University &amp; Year</th>
+                  <th class="pb-2 pr-3">Role</th>
+                  <th class="pb-2 pr-3">Status</th>
+                  <th class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${users.map(u => `
+                  <tr>
+                    <td class="py-2.5 pr-3">
+                      <div class="font-semibold text-slate-900">${escapeHtml(u.name)} ${u.isAdmin ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Admin</span>' : ''}</div>
+                      <div class="text-slate-500">+91 ${escapeHtml(u.phone)}</div>
+                    </td>
+                    <td class="py-2.5 pr-3">
+                      <div class="text-slate-800">${escapeHtml(u.university)}</div>
+                      <div class="text-slate-500">${escapeHtml(u.year)} · ${escapeHtml(u.hostel)}</div>
+                    </td>
+                    <td class="py-2.5 pr-3 capitalize text-slate-700">${escapeHtml(u.role)}</td>
+                    <td class="py-2.5 pr-3">
+                      <span class="px-2 py-0.5 rounded-full font-semibold ${u.isBanned ? 'bg-rose-100 text-rose-700' : 'bg-emerald-50 text-emerald-700'}">
+                        ${u.isBanned ? 'Suspended' : 'Active'}
+                      </span>
+                    </td>
+                    <td class="py-2.5 text-right">
+                      ${u.id !== state.user.id ? `
+                        <button type="button" data-admin-ban="${u.id}" data-ban-next="${u.isBanned ? '0' : '1'}" class="px-2.5 py-1 rounded-lg font-semibold ${u.isBanned ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}">
+                          ${u.isBanned ? 'Unban' : 'Suspend'}
+                        </button>
+                      ` : '<span class="text-slate-400">You</span>'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Moderation Lists -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-3">Moderate Jobs (${jobs.length})</h3>
+              ${jobs.length === 0 ? '<p class="text-xs text-slate-500">No jobs in this filter.</p>' : `
+                <div class="space-y-2.5">${jobs.map(j => `
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="font-semibold text-xs text-slate-900 truncate">${escapeHtml(j.title)}</div>
+                      <div class="text-[11px] text-slate-500">${escapeHtml(j.posterUniversity)} · ${j.bidCount} bids · ${escapeHtml(j.status)}</div>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                      <button type="button" data-open-job="${j.id}" class="text-xs font-semibold text-indigo-600 hover:underline">Inspect</button>
+                      <button type="button" data-admin-del-job="${j.id}" class="text-xs font-semibold text-rose-600 hover:underline">Remove</button>
+                    </div>
+                  </div>
+                `).join('')}</div>
+              `}
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 class="text-sm font-bold text-slate-900 mb-3">Moderate Delivery Pools (${pools.length})</h3>
+              ${pools.length === 0 ? '<p class="text-xs text-slate-500">No pools in this filter.</p>' : `
+                <div class="space-y-2.5">${pools.map(p => `
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                      <div class="font-semibold text-xs text-slate-900 truncate">${escapeHtml(p.platform)} · ${escapeHtml(p.university)} (${escapeHtml(p.hostel)})</div>
+                      <div class="text-[11px] text-slate-500">₹${getPoolTotal(p)} / ₹${p.target} · ${p.items.length} items</div>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                      <button type="button" data-open-pool="${p.id}" class="text-xs font-semibold text-emerald-700 hover:underline">Inspect</button>
+                      <button type="button" data-admin-del-pool="${p.id}" class="text-xs font-semibold text-rose-600 hover:underline">Remove</button>
+                    </div>
+                  </div>
+                `).join('')}</div>
+              `}
+            </div>
+          </div>
+        `;
+
+        document.getElementById('admin-uni-select').addEventListener('change', (e) => {
+          state.adminUniFilter = e.target.value;
+          renderAdmin();
+        });
+        document.getElementById('admin-refresh-btn').addEventListener('click', () => syncAll(true));
+
+        document.querySelectorAll('#admin-content [data-admin-ban]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.getAttribute('data-admin-ban');
+            const isBanned = btn.getAttribute('data-ban-next') === '1';
+            try {
+              await api(`/api/admin/users/${encodeURIComponent(uid)}/ban`, 'PATCH', { isBanned });
+              await syncAll(true);
+              showToast(isBanned ? 'User suspended.' : 'User reinstated.', isBanned ? 'error' : 'emerald');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        });
+
+        document.querySelectorAll('#admin-content [data-admin-del-job]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await api(`/api/jobs/${encodeURIComponent(btn.getAttribute('data-admin-del-job'))}`, 'DELETE');
+              await syncAll(true);
+              showToast('Job removed by admin.');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        });
+
+        document.querySelectorAll('#admin-content [data-admin-del-pool]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await api(`/api/pools/${encodeURIComponent(btn.getAttribute('data-admin-del-pool'))}`, 'DELETE');
+              await syncAll(true);
+              showToast('Pool removed by admin.');
+            } catch (err) { showToast(err.message, 'error'); }
+          });
+        });
+      }
+
+      function renderAll() {
+        populateUniversityFilters();
+        renderHeader();
+        renderJobs();
+        renderPools();
+        renderActivity();
+        if (state.activeTab === 'admin') renderAdmin();
+        lucide.createIcons();
+      }
+
+      function openAuthModal(mode) {
+        authMode = state.user ? 'profile' : (mode || 'login');
+        document.getElementById('auth-error').classList.add('hidden');
+        const tabs = document.getElementById('auth-mode-tabs');
+        const loginForm = document.getElementById('login-form');
+        const regForm = document.getElementById('register-form');
+        const logoutWrap = document.getElementById('logout-wrap');
+
+        if (authMode === 'profile') {
+          document.getElementById('auth-modal-title').textContent = 'Your Student Profile';
+          tabs.classList.add('hidden');
+          loginForm.classList.add('hidden');
+          regForm.classList.remove('hidden');
+          document.getElementById('reg-phone-wrap').classList.add('hidden');
+          document.getElementById('reg-password-wrap').classList.add('hidden');
+          document.getElementById('reg-phone').required = false;
+          document.getElementById('reg-password').required = false;
+          document.getElementById('reg-name').value = state.user.name;
+          document.getElementById('reg-university').value = state.user.university;
+          document.getElementById('reg-year').value = state.user.year;
+          document.getElementById('reg-hostel').value = state.user.hostel;
+          document.getElementById('reg-role').value = state.user.role || 'both';
+          document.getElementById('reg-submit-btn').textContent = 'Save Profile';
+          logoutWrap.classList.remove('hidden');
+        } else {
+          tabs.classList.remove('hidden');
+          logoutWrap.classList.add('hidden');
+          document.getElementById('reg-phone-wrap').classList.remove('hidden');
+          document.getElementById('reg-password-wrap').classList.remove('hidden');
+          document.getElementById('reg-phone').required = true;
+          document.getElementById('reg-password').required = true;
+          if (authMode === 'login') {
+            document.getElementById('auth-modal-title').textContent = 'Sign In to CampusLink';
+            loginForm.classList.remove('hidden');
+            regForm.classList.add('hidden');
+            document.getElementById('auth-tab-login').className = 'py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm';
+            document.getElementById('auth-tab-register').className = 'py-1.5 rounded-lg text-xs font-semibold text-slate-600';
+          } else {
+            document.getElementById('auth-modal-title').textContent = 'Create Student Account';
+            loginForm.classList.add('hidden');
+            regForm.classList.remove('hidden');
+            document.getElementById('reg-submit-btn').textContent = 'Create Account';
+            document.getElementById('auth-tab-register').className = 'py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm';
+            document.getElementById('auth-tab-login').className = 'py-1.5 rounded-lg text-xs font-semibold text-slate-600';
+          }
+        }
+        document.getElementById('modal-auth').classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      function showAuthError(msg) {
+        const el = document.getElementById('auth-error');
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      }
+
+      function openPostJobModal() {
+        document.getElementById('job-university').value = state.user.university || '';
+        document.getElementById('job-year').value = state.user.year || '2nd Year';
+        document.getElementById('job-location').value = state.user.hostel || '';
+        document.getElementById('modal-post-job').classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      function openStartPoolModal() {
+        document.getElementById('pool-university').value = state.user.university || '';
+        document.getElementById('pool-hostel').value = state.user.hostel || 'Hostel B';
+        document.getElementById('modal-start-pool').classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      // Listeners
+      document.getElementById('tab-btn-freelance').addEventListener('click', () => setTab('freelance'));
+      document.getElementById('tab-btn-pools').addEventListener('click', () => setTab('pools'));
+      document.getElementById('tab-btn-activity').addEventListener('click', () => setTab('activity'));
+      document.getElementById('tab-btn-admin').addEventListener('click', () => setTab('admin'));
+      document.getElementById('mob-tab-freelance').addEventListener('click', () => setTab('freelance'));
+      document.getElementById('mob-tab-pools').addEventListener('click', () => setTab('pools'));
+      document.getElementById('mob-tab-activity').addEventListener('click', () => setTab('activity'));
+      document.getElementById('mob-tab-admin').addEventListener('click', () => setTab('admin'));
+
+      document.getElementById('auth-btn').addEventListener('click', () => openAuthModal(state.user ? 'profile' : 'login'));
+      document.getElementById('auth-tab-login').addEventListener('click', () => openAuthModal('login'));
+      document.getElementById('auth-tab-register').addEventListener('click', () => openAuthModal('register'));
+      document.getElementById('close-auth-modal').addEventListener('click', () => { pendingActionAfterLogin = null; document.getElementById('modal-auth').classList.add('hidden'); });
+      document.getElementById('close-post-job-modal').addEventListener('click', () => document.getElementById('modal-post-job').classList.add('hidden'));
+      document.getElementById('close-job-detail-modal').addEventListener('click', () => document.getElementById('modal-job-detail').classList.add('hidden'));
+      document.getElementById('close-start-pool-modal').addEventListener('click', () => document.getElementById('modal-start-pool').classList.add('hidden'));
+      document.getElementById('close-pool-detail-modal').addEventListener('click', () => document.getElementById('modal-pool-detail').classList.add('hidden'));
+
+      document.getElementById('primary-cta-btn').addEventListener('click', () => {
+        if (state.activeTab === 'pools') requireLogin(openStartPoolModal);
+        else requireLogin(openPostJobModal);
+      });
+      document.getElementById('inline-start-pool-btn').addEventListener('click', () => requireLogin(openStartPoolModal));
+
+      document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const data = await api('/api/auth/login', 'POST', {
+            phone: document.getElementById('login-phone').value.trim(),
+            password: document.getElementById('login-password').value
+          });
+          token = data.token;
+          state.user = data.user;
+          try { localStorage.setItem(TOKEN_KEY, token); } catch (err) {}
+          document.getElementById('login-form').reset();
+          document.getElementById('modal-auth').classList.add('hidden');
+          await syncAll(true);
+          showToast(`Welcome back, ${state.user.name}!`);
+          if (pendingActionAfterLogin) { const fn = pendingActionAfterLogin; pendingActionAfterLogin = null; fn(); }
+        } catch (err) { showAuthError(err.message); }
+      });
+
+      document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          if (authMode === 'profile') {
+            const data = await api('/api/auth/profile', 'PATCH', {
+              name: document.getElementById('reg-name').value.trim(),
+              university: document.getElementById('reg-university').value.trim(),
+              year: document.getElementById('reg-year').value,
+              hostel: document.getElementById('reg-hostel').value,
+              role: document.getElementById('reg-role').value
+            });
+            state.user = data.user;
+            document.getElementById('modal-auth').classList.add('hidden');
+            await syncAll(true);
+            showToast('Profile updated!');
+          } else {
+            const data = await api('/api/auth/register', 'POST', {
+              name: document.getElementById('reg-name').value.trim(),
+              phone: document.getElementById('reg-phone').value.trim(),
+              password: document.getElementById('reg-password').value,
+              university: document.getElementById('reg-university').value.trim(),
+              year: document.getElementById('reg-year').value,
+              hostel: document.getElementById('reg-hostel').value,
+              role: document.getElementById('reg-role').value
+            });
+            token = data.token;
+            state.user = data.user;
+            try { localStorage.setItem(TOKEN_KEY, token); } catch (err) {}
+            document.getElementById('register-form').reset();
+            document.getElementById('modal-auth').classList.add('hidden');
+            await syncAll(true);
+            showToast(state.user.isAdmin ? `Admin account created for ${state.user.name}!` : `Account created for ${state.user.name}!`, 'emerald');
+            if (pendingActionAfterLogin) { const fn = pendingActionAfterLogin; pendingActionAfterLogin = null; fn(); }
+          }
+        } catch (err) { showAuthError(err.message); }
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await api('/api/auth/logout', 'POST'); } catch (e) {}
+        token = null;
+        state.user = null;
+        state.adminData = null;
+        if (state.activeTab === 'admin') state.activeTab = 'freelance';
+        try { localStorage.removeItem(TOKEN_KEY); } catch (err) {}
+        document.getElementById('modal-auth').classList.add('hidden');
+        await syncAll(true);
+        showToast('Signed out');
+      });
+
+      document.getElementById('post-job-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api('/api/jobs', 'POST', {
+            title: document.getElementById('job-title').value.trim(),
+            category: document.getElementById('job-category').value,
+            budget: Number(document.getElementById('job-budget').value),
+            university: document.getElementById('job-university').value.trim(),
+            year: document.getElementById('job-year').value,
+            location: document.getElementById('job-location').value.trim(),
+            deadline: document.getElementById('job-deadline').value.trim(),
+            description: document.getElementById('job-desc').value.trim()
+          });
+          document.getElementById('post-job-form').reset();
+          document.getElementById('modal-post-job').classList.add('hidden');
+          state.activeTab = 'freelance';
+          await syncAll(true);
+          showToast('Job published live!');
+        } catch (err) { showToast(err.message, 'error'); }
+      });
+
+      document.getElementById('start-pool-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await api('/api/pools', 'POST', {
+            university: document.getElementById('pool-university').value.trim(),
+            platform: document.getElementById('pool-platform').value,
+            hostel: document.getElementById('pool-hostel').value,
+            target: Number(document.getElementById('pool-target').value),
+            closes: document.getElementById('pool-closes').value.trim(),
+            firstItem: document.getElementById('pool-first-item').value.trim(),
+            firstPrice: Number(document.getElementById('pool-first-price').value)
+          });
+          document.getElementById('start-pool-form').reset();
+          document.getElementById('pool-target').value = '100';
+          document.getElementById('pool-closes').value = 'In 20 mins';
+          document.getElementById('modal-start-pool').classList.add('hidden');
+          state.activeTab = 'pools';
+          await syncAll(true);
+          showToast('Delivery pool launched!', 'emerald');
+        } catch (err) { showToast(err.message, 'error'); }
+      });
+
+      document.getElementById('job-search').addEventListener('input', renderJobs);
+      document.getElementById('job-university-filter').addEventListener('change', renderJobs);
+      document.getElementById('job-category-filter').addEventListener('change', renderJobs);
+      document.getElementById('job-sort').addEventListener('change', renderJobs);
+      document.getElementById('pool-university-filter').addEventListener('change', renderPools);
+      document.getElementById('pool-hostel-filter').addEventListener('change', renderPools);
+      document.getElementById('pool-platform-filter').addEventListener('change', renderPools);
+
+      document.addEventListener('click', (e) => {
+        const jobBtn = e.target.closest('[data-open-job]');
+        if (jobBtn) { openJobDetail(jobBtn.getAttribute('data-open-job')); return; }
+        const poolBtn = e.target.closest('[data-open-pool]');
+        if (poolBtn) { openPoolDetail(poolBtn.getAttribute('data-open-pool')); return; }
+        if (e.target.closest('[data-trigger-post-job]')) { requireLogin(openPostJobModal); return; }
+        if (e.target.closest('[data-trigger-start-pool]')) { requireLogin(openStartPoolModal); return; }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          ['modal-auth', 'modal-post-job', 'modal-job-detail', 'modal-start-pool', 'modal-pool-detail'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+          });
+        }
+      });
+
+      syncAll(true);
+      setInterval(() => syncAll(false), 15000);
+    })();
+  </script>
+</body>
+</html>
